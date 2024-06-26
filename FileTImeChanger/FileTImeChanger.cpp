@@ -378,20 +378,6 @@ public:
 
 
 		//--------------------------------------------------------------------
-#if 0
-		HANDLE hHandle;
-		WIN32_FIND_DATAW data;
-
-
-		hHandle = FindFirstFileW(_path.c_str(), &data);
-		if (hHandle == INVALID_HANDLE_VALUE)
-		{
-			return false;
-		}
-#endif
-
-
-		//--------------------------------------------------------------------
 		HANDLE hHandle;
 
 		
@@ -427,12 +413,6 @@ public:
 			errorReport(L"SetFileTime()");
 			result = false;
 		}
-
-
-		//--------------------------------------------------------------------
-#if 0
-		rv = FindClose(hHandle);
-#endif
 
 
 		//--------------------------------------------------------------------
