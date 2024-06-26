@@ -6,6 +6,12 @@
 #include <Windows.h>
 #include <strsafe.h>
 
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//==========================================================================
 void errorReport(const std::wstring& message)
 {
 	//-----------------------------------------------------------------------
@@ -63,6 +69,159 @@ void errorReport(const std::wstring& message)
 	//-----------------------------------------------------------------------
 //	ExitProcess(dwLastErrorCode);
 }
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//==========================================================================
+SYSTEMTIME date_time_string_to_SYSTEMTIME(std::string date, std::string time)
+{
+	std::stringstream date_stream(date);
+	std::stringstream time_stream(time);
+	std::string date_segment;
+	std::string time_segment;
+	std::vector<std::string> date_list;
+	std::vector<std::string> time_list;
+
+
+	while (std::getline(date_stream, date_segment, '-'))
+	{
+		date_list.push_back(date_segment);
+	}
+	while (std::getline(time_stream, time_segment, ':'))
+	{
+		time_list.push_back(time_segment);
+	}
+
+	int year = atoi(date_list[0].c_str());
+	int month = atoi(date_list[1].c_str());
+	int day = atoi(date_list[2].c_str());
+
+	int hour = atoi(time_list[0].c_str());
+	int minute = atoi(time_list[1].c_str());
+	int second = atoi(time_list[2].c_str());
+
+
+	SYSTEMTIME st =
+	{
+		static_cast<WORD>(year),
+		static_cast<WORD>(month),
+		static_cast<WORD>(0),
+		static_cast<WORD>(day),
+		static_cast<WORD>(hour),
+		static_cast<WORD>(minute),
+		static_cast<WORD>(second),
+		static_cast<WORD>(0)
+	};
+
+
+	return st;
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//==========================================================================
+std::uint64_t to_fdatetime(const FILETIME& ft)
+{
+	std::uint64_t n;
+
+
+	n = ft.dwHighDateTime;
+	n <<= 32ULL;
+	n |= ft.dwLowDateTime;
+
+	return n;
+}
+
+//==========================================================================
+std::uint64_t to_fdatetime(const SYSTEMTIME& st)
+{
+	FILETIME ft;
+
+
+	SystemTimeToFileTime(&st, &ft);
+
+	return to_fdatetime(ft);
+}
+
+std::uint64_t to_fdatetime(std::string date, std::string time)
+{
+	SYSTEMTIME st = date_time_string_to_SYSTEMTIME(date, time);
+
+	return to_fdatetime(st);
+}
+
+std::uint64_t to_fdatetime(
+	int year,
+	int month,
+	int day,
+	int hour,
+	int minute,
+	int second
+)
+{
+	SYSTEMTIME st =
+	{
+		static_cast<WORD>(year),
+		static_cast<WORD>(month),
+		static_cast<WORD>(0),
+		static_cast<WORD>(day),
+		static_cast<WORD>(hour),
+		static_cast<WORD>(minute),
+		static_cast<WORD>(second),
+		static_cast<WORD>(0)
+	};
+
+	return to_fdatetime(st);
+}
+
+//==========================================================================
+std::uint64_t local_to_fdatetime(const SYSTEMTIME& local)
+{
+	SYSTEMTIME st;
+
+
+	TzSpecificLocalTimeToSystemTime(nullptr, &local, &st);
+
+	return to_fdatetime(st);
+}
+
+std::uint64_t local_to_fdatetime(std::string date, std::string time)
+{
+	SYSTEMTIME st = date_time_string_to_SYSTEMTIME(date, time);
+
+	return local_to_fdatetime(st);
+}
+
+std::uint64_t local_to_fdatetime(
+	int year,
+	int month,
+	int day,
+	int hour,
+	int minute,
+	int second
+)
+{
+	SYSTEMTIME st =
+	{
+		static_cast<WORD>(year),
+		static_cast<WORD>(month),
+		static_cast<WORD>(0),
+		static_cast<WORD>(day),
+		static_cast<WORD>(hour),
+		static_cast<WORD>(minute),
+		static_cast<WORD>(second),
+		static_cast<WORD>(0)
+	};
+
+	return local_to_fdatetime(st);
+}
+
 
 class Element
 {
@@ -347,6 +506,12 @@ public:
 	}
 };
 
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//==========================================================================
 void push_Element(std::vector<Element*>& collection, std::wstring path, bool dir)
 {
 	Element* o = new Element();
@@ -411,6 +576,12 @@ void enum_directory (std::filesystem::path _directory_path, std::vector<Element*
 	}
 }
 
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//==========================================================================
 int main()
 {
 	//------------------------------------------------------------------------
