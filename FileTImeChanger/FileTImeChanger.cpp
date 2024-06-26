@@ -508,7 +508,7 @@ void push_Element(std::vector<Element*>& collection, std::wstring path, bool dir
 	collection.push_back(o);
 }
 
-void enum_directory (std::filesystem::path _directory_path, std::vector<Element*>& collection)
+void enum_filesystem(std::filesystem::path _directory_path, std::vector<Element*>& collection)
 {
 	//------------------------------------------------------------------------
 	std::wstring _directory_path_string;
@@ -584,7 +584,7 @@ int main()
 	
 	_current_path = std::filesystem::current_path();
 	_current_path = std::filesystem::path(L"D:/aaa");
-	enum_directory(_current_path, collection);
+	enum_filesystem(_current_path, collection);
 
 
 	//------------------------------------------------------------------------
