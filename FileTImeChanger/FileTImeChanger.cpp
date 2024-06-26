@@ -414,6 +414,11 @@ void enum_directory (std::filesystem::path _directory_path, std::vector<Element*
 int main()
 {
 	//------------------------------------------------------------------------
+	//setlocale(LC_ALL, "");
+	std::wcout.imbue(std::locale(""));
+
+
+	//------------------------------------------------------------------------
 	std::vector<Element*> collection;
 
 
