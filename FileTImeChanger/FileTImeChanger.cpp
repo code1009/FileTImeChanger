@@ -243,253 +243,264 @@ public:
 	SYSTEMTIME _lastAccessSystemTime;
 
 public:
-	void fileTimeToSystemTime(void)
-	{
-		FileTimeToSystemTime(&_creationFileTime, &_creationSystemTime);
-		FileTimeToSystemTime(&_lastWriteFileTime, &_lastWriteSystemTime);
-		FileTimeToSystemTime(&_lastAccessFileTime, &_lastAccessSystemTime);
-	}
-
-	void systemTimeToFileTime(void)
-	{
-		SystemTimeToFileTime(&_creationSystemTime, &_creationFileTime);
-		SystemTimeToFileTime(&_lastWriteSystemTime, &_lastWriteFileTime);
-		SystemTimeToFileTime(&_lastAccessSystemTime, &_lastAccessFileTime);
-	}
-
-	bool setFileTime(void)
-	{
-		//--------------------------------------------------------------------
-		systemTimeToFileTime();
-
-
-		//--------------------------------------------------------------------
-		HANDLE hHandle;
-
-
-		hHandle = CreateFileW(_path.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (hHandle == INVALID_HANDLE_VALUE)
-		{
-			return false;
-		}
-
-
-		//--------------------------------------------------------------------
-		bool result;
-
-
-		result = true;
-
-
-		//--------------------------------------------------------------------
-		BOOL rv;
-
-
-		rv = SetFileTime(hHandle, &_creationFileTime, &_lastAccessFileTime, &_lastWriteFileTime);
-		if (FALSE == rv)
-		{
-			result = false;
-		}
-
-
-		//--------------------------------------------------------------------
-		rv = CloseHandle(hHandle);
-
-
-		return result;
-	}
-
-	bool getFileTime(void)
-	{
-		//--------------------------------------------------------------------
-		fileTimeToSystemTime();
-
-
-		//--------------------------------------------------------------------
-		HANDLE hHandle;
-
-
-		hHandle = CreateFileW(_path.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (hHandle == INVALID_HANDLE_VALUE)
-		{
-			return false;
-		}
-
-
-		//--------------------------------------------------------------------
-		bool result;
-
-
-		result = true;
-
-
-		//--------------------------------------------------------------------
-		BOOL rv;
-
-
-		rv = GetFileTime(hHandle, &_creationFileTime, &_lastAccessFileTime, &_lastWriteFileTime);
-		if (FALSE == rv)
-		{
-			result = false;
-		}
-
-
-		//--------------------------------------------------------------------
-		rv = CloseHandle(hHandle);
-
-
-		return result;
-	}
-
-	bool getDirTime(void)
-	{
-		//--------------------------------------------------------------------
-		fileTimeToSystemTime();
-
-
-		//--------------------------------------------------------------------
-		HANDLE hHandle;
-		WIN32_FIND_DATAW data;
-		
-
-		hHandle = FindFirstFileW(_path.c_str(), &data);
-		if (hHandle == INVALID_HANDLE_VALUE)
-		{
-			return false;
-		}
-
-
-		//--------------------------------------------------------------------
-		memcpy(&_creationFileTime, &data.ftCreationTime, sizeof(_creationFileTime));
-		memcpy(&_lastWriteFileTime,  &data.ftLastAccessTime, sizeof(_lastWriteFileTime));
-		memcpy(&_lastAccessFileTime, &data.ftLastWriteTime, sizeof(_lastAccessFileTime));
-
-
-		//--------------------------------------------------------------------
-		BOOL rv;
-
-
-		//--------------------------------------------------------------------
-		rv = FindClose(hHandle);
-
-
-		return true;
-	}
-
-	bool setDirTime(void)
-	{
-		//--------------------------------------------------------------------
-		systemTimeToFileTime();
-
-
-		//--------------------------------------------------------------------
-		HANDLE hHandle;
-
-		
-		hHandle = CreateFileW(_path.c_str(), 
-			GENERIC_READ | GENERIC_WRITE, 
-			FILE_SHARE_READ | FILE_SHARE_WRITE, 
-			NULL, 
-			OPEN_EXISTING, 
-			FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_NORMAL | FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES | FILE_FLAG_BACKUP_SEMANTICS,
-			NULL
-		);
-		if (hHandle == INVALID_HANDLE_VALUE)
-		{
-			errorReport(L"CreateFileW()");
-			return false;
-		}
-
-
-		//--------------------------------------------------------------------
-		bool result;
-
-
-		result = true;
-
-
-		//--------------------------------------------------------------------
-		BOOL rv;
-
-
-		rv = SetFileTime(hHandle, &_creationFileTime, &_lastAccessFileTime, &_lastWriteFileTime);
-		if (FALSE == rv)
-		{
-			errorReport(L"SetFileTime()");
-			result = false;
-		}
-
-
-		//--------------------------------------------------------------------
-		rv = CloseHandle(hHandle);
-
-
-		return result;
-	}
-
-	bool getTime(void)
-	{
-		bool rv;
-
-
-		if (_dir)
-		{
-			rv = getDirTime();
-		}
-		else
-		{
-			rv = getFileTime();
-		}
-
-		return rv;
-	}
-
-	bool setTime(void)
-	{
-		bool rv;
-
-
-		if (_dir)
-		{
-			rv = setDirTime();
-		}
-		else
-		{
-			rv = setFileTime();
-		}
-
-
-		return rv;
-	}
-
-	void changeTime(void)
-	{
-		//------------------------------------------------------------------------
-		if (!getTime())
-		{
-			std::wcout << _path << L" getTime() failed" << std::endl;
-			return;
-		}
-
-
-		//------------------------------------------------------------------------
-		GetSystemTime(&_creationSystemTime);
-		GetSystemTime(&_lastWriteSystemTime);
-		GetSystemTime(&_lastAccessSystemTime);
-
-
-		//------------------------------------------------------------------------
-		if (!setTime())
-		{
-			std::wcout << _path << L" setTime() failed" << std::endl;
-			return;
-		}
-
-
-		//------------------------------------------------------------------------
-		std::wcout << _path << L" changeTime() ok" << std::endl;
-	}
+	void fileTimeToSystemTime(void);
+	void systemTimeToFileTime(void);
+	bool setFileTime(void);
+	bool getFileTime(void);
+	bool getDirTime(void);
+	bool setDirTime(void);
+	bool getTime(void);
+	bool setTime(void);
+	void changeTime(void);
 };
+
+//==========================================================================
+void Element::fileTimeToSystemTime(void)
+{
+	FileTimeToSystemTime(&_creationFileTime, &_creationSystemTime);
+	FileTimeToSystemTime(&_lastWriteFileTime, &_lastWriteSystemTime);
+	FileTimeToSystemTime(&_lastAccessFileTime, &_lastAccessSystemTime);
+}
+
+void Element::systemTimeToFileTime(void)
+{
+	SystemTimeToFileTime(&_creationSystemTime, &_creationFileTime);
+	SystemTimeToFileTime(&_lastWriteSystemTime, &_lastWriteFileTime);
+	SystemTimeToFileTime(&_lastAccessSystemTime, &_lastAccessFileTime);
+}
+
+bool Element::setFileTime(void)
+{
+	//------------------------------------------------------------------------
+	systemTimeToFileTime();
+
+
+	//------------------------------------------------------------------------
+	HANDLE hHandle;
+
+
+	hHandle = CreateFileW(_path.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hHandle == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+
+	//------------------------------------------------------------------------
+	bool result;
+
+
+	result = true;
+
+
+	//------------------------------------------------------------------------
+	BOOL rv;
+
+
+	rv = SetFileTime(hHandle, &_creationFileTime, &_lastAccessFileTime, &_lastWriteFileTime);
+	if (FALSE == rv)
+	{
+		result = false;
+	}
+
+
+	//------------------------------------------------------------------------
+	rv = CloseHandle(hHandle);
+
+
+	return result;
+}
+
+bool Element::getFileTime(void)
+{
+	//------------------------------------------------------------------------
+	fileTimeToSystemTime();
+
+
+	//------------------------------------------------------------------------
+	HANDLE hHandle;
+
+
+	hHandle = CreateFileW(_path.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hHandle == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+
+	//------------------------------------------------------------------------
+	bool result;
+
+
+	result = true;
+
+
+	//------------------------------------------------------------------------
+	BOOL rv;
+
+
+	rv = GetFileTime(hHandle, &_creationFileTime, &_lastAccessFileTime, &_lastWriteFileTime);
+	if (FALSE == rv)
+	{
+		result = false;
+	}
+
+
+	//------------------------------------------------------------------------
+	rv = CloseHandle(hHandle);
+
+
+	return result;
+}
+
+bool Element::getDirTime(void)
+{
+	//------------------------------------------------------------------------
+	fileTimeToSystemTime();
+
+
+	//------------------------------------------------------------------------
+	HANDLE hHandle;
+	WIN32_FIND_DATAW data;
+		
+
+	hHandle = FindFirstFileW(_path.c_str(), &data);
+	if (hHandle == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+
+	//------------------------------------------------------------------------
+	memcpy(&_creationFileTime, &data.ftCreationTime, sizeof(_creationFileTime));
+	memcpy(&_lastWriteFileTime,  &data.ftLastAccessTime, sizeof(_lastWriteFileTime));
+	memcpy(&_lastAccessFileTime, &data.ftLastWriteTime, sizeof(_lastAccessFileTime));
+
+
+	//------------------------------------------------------------------------
+	BOOL rv;
+
+
+	//------------------------------------------------------------------------
+	rv = FindClose(hHandle);
+
+
+	return true;
+}
+
+bool Element::setDirTime(void)
+{
+	//------------------------------------------------------------------------
+	systemTimeToFileTime();
+
+
+	//------------------------------------------------------------------------
+	HANDLE hHandle;
+
+		
+	hHandle = CreateFileW(_path.c_str(), 
+		GENERIC_READ | GENERIC_WRITE, 
+		FILE_SHARE_READ | FILE_SHARE_WRITE, 
+		NULL, 
+		OPEN_EXISTING, 
+		FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_NORMAL | FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES | FILE_FLAG_BACKUP_SEMANTICS,
+		NULL
+	);
+	if (hHandle == INVALID_HANDLE_VALUE)
+	{
+		errorReport(L"CreateFileW()");
+		return false;
+	}
+
+
+	//------------------------------------------------------------------------
+	bool result;
+
+
+	result = true;
+
+
+	//------------------------------------------------------------------------
+	BOOL rv;
+
+
+	rv = SetFileTime(hHandle, &_creationFileTime, &_lastAccessFileTime, &_lastWriteFileTime);
+	if (FALSE == rv)
+	{
+		errorReport(L"SetFileTime()");
+		result = false;
+	}
+
+
+	//------------------------------------------------------------------------
+	rv = CloseHandle(hHandle);
+
+
+	return result;
+}
+
+bool Element::getTime(void)
+{
+	bool rv;
+
+
+	if (_dir)
+	{
+		rv = getDirTime();
+	}
+	else
+	{
+		rv = getFileTime();
+	}
+
+	return rv;
+}
+
+bool Element::setTime(void)
+{
+	bool rv;
+
+
+	if (_dir)
+	{
+		rv = setDirTime();
+	}
+	else
+	{
+		rv = setFileTime();
+	}
+
+
+	return rv;
+}
+
+void Element::changeTime(void)
+{
+	//------------------------------------------------------------------------
+	if (!getTime())
+	{
+		std::wcout << _path << L" getTime() failed" << std::endl;
+		return;
+	}
+
+
+	//------------------------------------------------------------------------
+	GetSystemTime(&_creationSystemTime);
+	GetSystemTime(&_lastWriteSystemTime);
+	GetSystemTime(&_lastAccessSystemTime);
+
+
+	//------------------------------------------------------------------------
+	if (!setTime())
+	{
+		std::wcout << _path << L" setTime() failed" << std::endl;
+		return;
+	}
+
+
+	//------------------------------------------------------------------------
+	std::wcout << _path << L" changeTime() ok" << std::endl;
+}
 
 
 
@@ -497,7 +508,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////
 //==========================================================================
-void push_Element(std::vector<Element*>& collection, std::wstring path, bool dir)
+void pushElement(std::vector<Element*>& collection, std::wstring path, bool dir)
 {
 	Element* o = new Element();
 
@@ -508,14 +519,14 @@ void push_Element(std::vector<Element*>& collection, std::wstring path, bool dir
 	collection.push_back(o);
 }
 
-void enum_filesystem(std::filesystem::path _directory_path, std::vector<Element*>& collection)
+void enumerateFilesystem(std::filesystem::path _directory_path, std::vector<Element*>& collection)
 {
 	//------------------------------------------------------------------------
 	std::wstring _directory_path_string;
 	
 	
 	_directory_path_string = _directory_path.generic_wstring();
-	push_Element(collection, _directory_path_string, true);
+	pushElement(collection, _directory_path_string, true);
 
 
 	//------------------------------------------------------------------------
@@ -539,7 +550,7 @@ void enum_filesystem(std::filesystem::path _directory_path, std::vector<Element*
 			_sub_directory_path = _directory_entry.path();
 
 
-			enum_directory(_sub_directory_path, collection);
+			enumerateFilesystem(_sub_directory_path, collection);
 		}
 		else
 		{
@@ -553,7 +564,7 @@ void enum_filesystem(std::filesystem::path _directory_path, std::vector<Element*
 
 
 			_directory_path_string = _directory_file_path.generic_wstring();
-			push_Element(collection, _directory_path_string, false);
+			pushElement(collection, _directory_path_string, false);
 		}
 
 
@@ -584,15 +595,24 @@ int main()
 	
 	_current_path = std::filesystem::current_path();
 	_current_path = std::filesystem::path(L"D:/aaa");
-	enum_filesystem(_current_path, collection);
+	enumerateFilesystem(_current_path, collection);
 
 
 	//------------------------------------------------------------------------
 	for (auto& element : collection)
 	{
 		element->changeTime();
-		delete element;
 	}
+
+
+	//------------------------------------------------------------------------
+	std::for_each(collection.begin(), collection.end(),
+		[](Element* p)
+		{
+			delete p;
+		}
+	);
+	collection.clear();
 
 
 	return 0;
